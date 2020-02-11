@@ -13,15 +13,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/authenticated").authenticated()
                 .antMatchers("/me/**", "/me").hasRole("USER")
-//                .antMatchers()
                 .antMatchers("/user/**", "/user").not().hasRole("USER")
                 .anyRequest().hasRole("ADMIN")
-//                .antMatchers(HttpMethod.POST, "/register/user").permitAll()
-//                .antMatchers(HttpMethod.GET, "/authenticated-info").authenticated()
-//                .antMatchers(HttpMethod.POST, "/me**").authenticated()
-//                .antMatchers(HttpMethod.POST).hasRole("ADMIN")
-//                .antMatchers(HttpMethod.POST).permitAll()
-//                .antMatchers(HttpMethod.GET).permitAll()
         ;
     }
 }
