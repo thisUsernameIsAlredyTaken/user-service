@@ -19,7 +19,7 @@ public class UserController {
                                                   @RequestParam String lastName,
                                                   @RequestParam String passwordHash) {
         if (registerService.registerNewUser(username, passwordHash, firstName, lastName)) {
-            return ResponseEntity.status(HttpStatus.CREATED)
+            return ResponseEntity.status(HttpStatus.OK)
                     .body(String.format("User \"%s\" created", username));
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT)

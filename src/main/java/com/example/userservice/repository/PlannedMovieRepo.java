@@ -11,4 +11,6 @@ import java.util.List;
 public interface PlannedMovieRepo extends JpaRepository<PlannedMovie, CompositeId> {
 
     List<PlannedMovie> findAllByUsername(String username);
+
+    void deleteByUsernameAndMovieId(String username, String movieId);
 }

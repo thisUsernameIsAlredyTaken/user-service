@@ -16,6 +16,10 @@ public class RegisterService {
 
     public boolean registerNewUser(String username, String passwordHash,
                                    String firstName, String lastName) {
-        return userCredentialRepo.registerUser(username, passwordHash, firstName, lastName);
+        if (userCredentialRepo.existsById(username)) {
+            return false;
+        }
+        userCredentialRepo.registerUser(username, passwordHash, firstName, lastName);
+        return true;
     }
 }

@@ -18,6 +18,7 @@ public class AuthenticatedInfoController {
         if (user == null) {
             return info;
         }
+        info.put("username", user.getName());
         info.put("user", user.getUserAuthentication().getPrincipal());
         info.put("authorities", user.getUserAuthentication().getAuthorities());
         return info;

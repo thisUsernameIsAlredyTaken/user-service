@@ -11,4 +11,6 @@ import java.util.List;
 public interface WatchedMovieRepo extends JpaRepository<WatchedMovie, CompositeId> {
 
     List<WatchedMovie> findAllByUsername(String username);
+
+    void deleteByUsernameAndMovieId(String username, String movieId);
 }
