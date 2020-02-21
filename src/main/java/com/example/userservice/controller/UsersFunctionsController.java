@@ -31,8 +31,10 @@ public class UsersFunctionsController {
     }
 
     @GetMapping("watched")
-    public List<Map<String, Object>> getAllWatched(OAuth2Authentication authenticated) {
-        return userFunctionsService.findAllWatchedByUsername(authenticated.getName());
+    public List<Map<String, Object>> getAllWatched(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int pageSize,
+                                                   OAuth2Authentication authenticated) {
+        return userFunctionsService.findAllWatchedByUsername(authenticated.getName(), page, pageSize);
     }
 
     @PostMapping("planned")
@@ -46,8 +48,10 @@ public class UsersFunctionsController {
     }
 
     @GetMapping("planned")
-    public List<Map<String, Object>> getAllPlanned(OAuth2Authentication authenticated) {
-        return userFunctionsService.findAllPlannedByUsername(authenticated.getName());
+    public List<Map<String, Object>> getAllPlanned(@RequestParam(defaultValue = "0") int pageSize,
+                                                   @RequestParam(defaultValue = "10") int page,
+                                                   OAuth2Authentication authenticated) {
+        return userFunctionsService.findAllPlannedByUsername(authenticated.getName(), page, pageSize);
     }
 
     @DeleteMapping("listed/{movieId}")
@@ -70,7 +74,8 @@ public class UsersFunctionsController {
     }
 
     @GetMapping("recommend")
-    public List<Map<String, Object>> getRecommend(OAuth2Authentication authenticated) {
-        return userFunctionsService.recommend(authenticated.getName());
+    public List<Map<String, Object>> getRecommend(@RequestParam(defaultValue = "10") int count,
+                                                  OAuth2Authentication authenticated) {
+        return userFunctionsService.recommend(authenticated.getName(), count);
     }
 }

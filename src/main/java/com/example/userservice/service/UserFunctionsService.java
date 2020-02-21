@@ -2,13 +2,16 @@ package com.example.userservice.service;
 
 import com.example.userservice.feign.MovieServiceFeign;
 import com.example.userservice.model.PlannedMovie;
-import com.example.userservice.model.UserCredential;
 import com.example.userservice.model.WatchedMovie;
 import com.example.userservice.repository.PlannedMovieRepo;
 import com.example.userservice.repository.UserCredentialRepo;
 import com.example.userservice.repository.WatchedMovieRepo;
 import feign.FeignException;
+import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
@@ -101,8 +104,9 @@ public class UserFunctionsService {
         return res;
     }
 
-    public List<Map<String, Object>> findAllPlannedByUsername(String username) {
-        List<PlannedMovie> plannedMovies = plannedMovieRepo.findAllByUsername(username);
+    public List<Map<String, Object>> findAllPlannedByUsername(String username, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("date").descending());
+        List<PlannedMovie> plannedMovies = plannedMovieRepo.findAllByUsername(username, pageable);
         List<String> plannedMoviesIds = new ArrayList<>();
         for (PlannedMovie plannedMovie : plannedMovies) {
             plannedMoviesIds.add(plannedMovie.getMovieId());
@@ -110,8 +114,9 @@ public class UserFunctionsService {
         return mergeInfoPlanned(plannedMovies, movieServiceFeign.findMoviesByIds(plannedMoviesIds));
     }
 
-    public List<Map<String, Object>> findAllWatchedByUsername(String username) {
-        List<WatchedMovie> watchedMovies = watchedMovieRepo.findAllByUsername(username);
+    public List<Map<String, Object>> findAllWatchedByUsername(String username, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("date").descending());
+        List<WatchedMovie> watchedMovies = watchedMovieRepo.findAllByUsername(username, pageable);
         List<String> watchedMovieIds = new ArrayList<>();
         for (WatchedMovie watchedMovie : watchedMovies) {
             watchedMovieIds.add(watchedMovie.getMovieId());
@@ -128,16 +133,18 @@ public class UserFunctionsService {
         return userCredentialRepo.getListedStatus(movieId, username).orElse(null);
     }
 
-    public List<Map<String, Object>> recommend(String username) {
-        List<WatchedMovie> allByUsername = watchedMovieRepo.findAllByUsername(username);
+    public List<Map<String, Object>> recommend(String username, int count) {
+        List<Map<String, Object>> idsAndScores = watchedMovieRepo.findWatchedIdsByUsername(username);
         List<String> ids = new ArrayList<>();
         List<String> scores = new ArrayList<>();
-        for (WatchedMovie watchedMovie : allByUsername) {
-            ids.add(watchedMovie.getMovieId());
-            scores.add(Optional.ofNullable(watchedMovie.getRating()).orElse(5).toString());
+        for (Map<String, Object> idAndScore : idsAndScores) {
+            ids.add((String)idAndScore.get("movie_id"));
+            Integer rating = (Integer)idAndScore.get("rating");
+            rating = Optional.ofNullable(rating).orElse(5);
+            scores.add(rating.toString());
         }
         return movieServiceFeign.recommend(String.join(",", ids),
                 String.join(",", scores),
-                0, 5);
+                0, count);
     }
 }
