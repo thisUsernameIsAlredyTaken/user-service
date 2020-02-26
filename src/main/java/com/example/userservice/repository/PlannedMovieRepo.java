@@ -14,6 +14,8 @@ public interface PlannedMovieRepo extends JpaRepository<PlannedMovie, CompositeI
 
     List<PlannedMovie> findAllByUsername(String username, Pageable pageable);
 
+    int countByUsername(String username);
+
     @Query("select w.movieId from PlannedMovie w where w.username = ?1")
     List<String> findPlannedIdsByUsername(String username);
 

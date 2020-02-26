@@ -48,10 +48,24 @@ public class UsersFunctionsController {
     }
 
     @GetMapping("planned")
-    public List<Map<String, Object>> getAllPlanned(@RequestParam(defaultValue = "0") int pageSize,
-                                                   @RequestParam(defaultValue = "10") int page,
+    public List<Map<String, Object>> getAllPlanned(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int pageSize,
                                                    OAuth2Authentication authenticated) {
         return userFunctionsService.findAllPlannedByUsername(authenticated.getName(), page, pageSize);
+    }
+
+    @GetMapping("planned/count")
+    public Map<String, Integer> getPlannedCount(OAuth2Authentication authenticated) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("count", userFunctionsService.plannedCount(authenticated.getName()));
+        return map;
+    }
+
+    @GetMapping("watched/count")
+    public Map<String, Integer> getWatchedCount(OAuth2Authentication authenticated) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("count", userFunctionsService.watchedCount(authenticated.getName()));
+        return map;
     }
 
     @DeleteMapping("listed/{movieId}")
@@ -61,16 +75,16 @@ public class UsersFunctionsController {
     }
 
     @GetMapping("listed/{movieId}")
-    public ResponseEntity<Map<String, String>> getListedStatus(@PathVariable String movieId,
+    public Map<String, String> getListedStatus(@PathVariable String movieId,
                                                                OAuth2Authentication authenticated) {
         String s = userFunctionsService.listedStatus(authenticated.getName(), movieId);
         Map<String, String> map = new HashMap<>();
-        map.put("listed", s);
         if (s == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            map.put("listed", "none");
         } else {
-            return ResponseEntity.status(HttpStatus.OK).body(map);
+            map.put("listed", s);
         }
+        return map;
     }
 
     @GetMapping("recommend")

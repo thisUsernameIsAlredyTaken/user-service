@@ -13,8 +13,9 @@ import java.util.Optional;
 public interface UserCredentialRepo extends JpaRepository<UserCredential, String> {
 
     @Query(nativeQuery = true,
-            value = "select register_user(:username, :password_hash, :first_name, :last_name)")
+            value = "select register_user(:username, :email, :password_hash, :first_name, :last_name)")
     void registerUser(@Param("username") String username,
+                      @Param("email") String email,
                       @Param("password_hash") String passwordHash,
                       @Param("first_name") String firstName,
                       @Param("last_name") String lastName);

@@ -20,4 +20,8 @@ public class UserInfo {
     private String lastName;
 
     private Date registerDate;
+
+    private String imageUri;
+
+    private String email;
 }

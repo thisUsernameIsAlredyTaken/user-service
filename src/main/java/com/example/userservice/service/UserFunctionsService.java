@@ -7,7 +7,6 @@ import com.example.userservice.repository.PlannedMovieRepo;
 import com.example.userservice.repository.UserCredentialRepo;
 import com.example.userservice.repository.WatchedMovieRepo;
 import feign.FeignException;
-import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,11 +76,12 @@ public class UserFunctionsService {
     private List<Map<String, Object>> mergeInfoPlanned(List<PlannedMovie> plannedMovies,
                                                        List<Map<String, Object>> movies) {
         List<Map<String, Object>> res = new ArrayList<>();
-        for (Map<String, Object> movie : movies) {
-            Map<String, Object> newMovie = new HashMap<>(movie);
-            PlannedMovie pm = plannedMovies.stream().filter(plannedMovie ->
-                    newMovie.get("id").equals(plannedMovie.getMovieId())).findAny().get();
-            newMovie.put("add_date", pm.getDate());
+        for (PlannedMovie plannedMovie : plannedMovies) {
+            Map<String, Object> newMovie = new HashMap<>(
+                    movies.stream().filter(movie ->
+                            movie.get("id").equals(plannedMovie.getMovieId())).findAny().get()
+            );
+            newMovie.put("add_date", plannedMovie.getDate());
             newMovie.put("listed", "planned");
             res.add(newMovie);
         }
@@ -91,13 +91,14 @@ public class UserFunctionsService {
     private List<Map<String, Object>> mergeInfoWatched(List<WatchedMovie> watchedMovies,
                                                        List<Map<String, Object>> movies) {
         List<Map<String, Object>> res = new ArrayList<>();
-        for (Map<String, Object> movie : movies) {
-            Map<String, Object> newMovie = new HashMap<>(movie);
-            WatchedMovie wm = watchedMovies.stream().filter(watchedMovie ->
-                    newMovie.get("id").equals(watchedMovie.getMovieId())).findAny().get();
-            newMovie.put("user_score", wm.getRating());
-            newMovie.put("user_message", wm.getMessage());
-            newMovie.put("add_date", wm.getDate());
+        for (WatchedMovie watchedMovie : watchedMovies) {
+            Map<String, Object> newMovie = new HashMap<>(
+                    movies.stream().filter(movie ->
+                            movie.get("id").equals(watchedMovie.getMovieId())).findAny().get()
+            );
+            newMovie.put("user_score", watchedMovie.getRating());
+            newMovie.put("user_message", watchedMovie.getMessage());
+            newMovie.put("add_date", watchedMovie.getDate());
             newMovie.put("listed", "watched");
             res.add(newMovie);
         }
@@ -105,7 +106,10 @@ public class UserFunctionsService {
     }
 
     public List<Map<String, Object>> findAllPlannedByUsername(String username, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("date").descending());
+        int maxPage = plannedMovieRepo.countByUsername(username) / pageSize;
+        page = Math.min(maxPage, page);
+        if (page == -1) page = 0;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("date").ascending());
         List<PlannedMovie> plannedMovies = plannedMovieRepo.findAllByUsername(username, pageable);
         List<String> plannedMoviesIds = new ArrayList<>();
         for (PlannedMovie plannedMovie : plannedMovies) {
@@ -115,6 +119,9 @@ public class UserFunctionsService {
     }
 
     public List<Map<String, Object>> findAllWatchedByUsername(String username, int page, int pageSize) {
+        int maxPage = (watchedMovieRepo.countByUsername(username) - 1) / pageSize;
+        page = Math.min(maxPage, page);
+        if (page == -1) page = 0;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("date").descending());
         List<WatchedMovie> watchedMovies = watchedMovieRepo.findAllByUsername(username, pageable);
         List<String> watchedMovieIds = new ArrayList<>();
@@ -122,6 +129,14 @@ public class UserFunctionsService {
             watchedMovieIds.add(watchedMovie.getMovieId());
         }
         return mergeInfoWatched(watchedMovies, movieServiceFeign.findMoviesByIds(watchedMovieIds));
+    }
+
+    public int watchedCount(String username) {
+        return watchedMovieRepo.countByUsername(username);
+    }
+
+    public int plannedCount(String username) {
+        return plannedMovieRepo.countByUsername(username);
     }
 
     public void deleteListed(String username, String movieId) {
@@ -138,8 +153,8 @@ public class UserFunctionsService {
         List<String> ids = new ArrayList<>();
         List<String> scores = new ArrayList<>();
         for (Map<String, Object> idAndScore : idsAndScores) {
-            ids.add((String)idAndScore.get("movie_id"));
-            Integer rating = (Integer)idAndScore.get("rating");
+            ids.add((String) idAndScore.get("movie_id"));
+            Integer rating = (Integer) idAndScore.get("rating");
             rating = Optional.ofNullable(rating).orElse(5);
             scores.add(rating.toString());
         }

@@ -17,6 +17,8 @@ public interface WatchedMovieRepo extends JpaRepository<WatchedMovie, CompositeI
 
     List<WatchedMovie> findAllByUsername(String username, Pageable pageable);
 
+    int countByUsername(String username);
+
     @Query(nativeQuery = true,
             value = "select w.movie_id, w.rating from watched_movie w where w.username = :username")
     List<Map<String, Object>> findWatchedIdsByUsername(@Param("username") String username);
