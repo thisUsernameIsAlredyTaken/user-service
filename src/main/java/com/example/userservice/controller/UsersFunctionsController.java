@@ -37,6 +37,17 @@ public class UsersFunctionsController {
         return userFunctionsService.findAllWatchedByUsername(authenticated.getName(), page, pageSize);
     }
 
+    @GetMapping("watched/{id}")
+    public ResponseEntity<Map<String, Object>> getWatched(@PathVariable String id,
+                                                          OAuth2Authentication authenticated) {
+        Map<String, Object> movie = userFunctionsService.getWatchedById(authenticated.getName(), id);
+        if (movie != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(movie);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping("planned")
     public ResponseEntity<Void> addPlanned(@RequestParam String movieId,
                                            OAuth2Authentication authenticated) {
@@ -52,6 +63,18 @@ public class UsersFunctionsController {
                                                    @RequestParam(defaultValue = "10") int pageSize,
                                                    OAuth2Authentication authenticated) {
         return userFunctionsService.findAllPlannedByUsername(authenticated.getName(), page, pageSize);
+    }
+
+    @PatchMapping("watched")
+    public ResponseEntity<Void> patchWatched(@RequestParam(required = false) Integer score,
+                                             @RequestParam(required = false) String message,
+                                             @RequestParam String movieId,
+                                             OAuth2Authentication authenticated) {
+        if (userFunctionsService.patchWatched(authenticated.getName(), movieId, score, message)) {
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @GetMapping("planned/count")
@@ -76,13 +99,13 @@ public class UsersFunctionsController {
 
     @GetMapping("listed/{movieId}")
     public Map<String, String> getListedStatus(@PathVariable String movieId,
-                                                               OAuth2Authentication authenticated) {
+                                               OAuth2Authentication authenticated) {
         String s = userFunctionsService.listedStatus(authenticated.getName(), movieId);
         Map<String, String> map = new HashMap<>();
         if (s == null) {
-            map.put("listed", "none");
+            map.put("message", "none");
         } else {
-            map.put("listed", s);
+            map.put("message", s);
         }
         return map;
     }

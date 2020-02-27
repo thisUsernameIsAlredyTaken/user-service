@@ -9,11 +9,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public interface WatchedMovieRepo extends JpaRepository<WatchedMovie, CompositeId> {
+
+    @Query("select m from WatchedMovie m where m.movieId = :id and m.username = :uname")
+    Optional<WatchedMovie> findByUsernameAndMovieId(@Param("uname") String username,
+                                                    @Param("id") String movieId);
 
     List<WatchedMovie> findAllByUsername(String username, Pageable pageable);
 

@@ -33,6 +33,35 @@ public class UserFunctionsService {
     @Autowired
     private MovieServiceFeign movieServiceFeign;
 
+    public Map<String, Object> getWatchedById(String username, String movieId) {
+        WatchedMovie watchedMovie = watchedMovieRepo.findByUsernameAndMovieId(username, movieId).orElse(null);
+        if (watchedMovie == null) {
+            return null;
+        }
+        return mergeInfoWatched(Arrays.asList(watchedMovie),
+                movieServiceFeign.findMoviesByIds(Arrays.asList(watchedMovie.getMovieId()))).get(0);
+    }
+
+    public boolean patchWatched(String username, String movieId, Integer score, String message) {
+        Optional<WatchedMovie> watchedOptional = watchedMovieRepo.findByUsernameAndMovieId(username, movieId);
+        if (!watchedOptional.isPresent()) {
+            return false;
+        }
+        WatchedMovie watched = watchedOptional.get();
+        if (score != null) {
+            if (score < 1 || score > 10) {
+                watched.setRating(null);
+            } else {
+                watched.setRating(score);
+            }
+        }
+        if (message != null) {
+            watched.setMessage(message);
+        }
+        watchedMovieRepo.save(watched);
+        return true;
+    }
+
     public boolean addWatched(String username, String movieId, Integer score, String message) {
         try {
             movieServiceFeign.findMovieById(movieId);

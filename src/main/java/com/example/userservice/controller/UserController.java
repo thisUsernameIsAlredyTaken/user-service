@@ -6,8 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("user")
@@ -23,16 +22,22 @@ public class UserController {
                                                                @RequestParam String lastName,
                                                                @RequestParam String passwordHash) {
         Map<String, String> map = new HashMap<>();
+        String usernameExist = String.format("User \"%s\" exists", username);
+        String emailExist = String.format("E-mail \"%s\" exists", email);
         String result = registerService.registerNewUser(username, email, passwordHash, firstName, lastName);
         if ("ok".equals(result)) {
             map.put("message", String.format("User \"%s\" created", username));
             return ResponseEntity.status(HttpStatus.CREATED).body(map);
-        } else if ("username".equals(result)) {
-            map.put("message", String.format("User \"%s\" exists", username));
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
         } else {
-            map.put("message", String.format("E-mail \"%s\" exists", email));
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(map);
+            if (result.contains("username")) {
+                if (result.contains("email")) {
+                    map.put("message1", emailExist);
+                }
+                map.put("message", usernameExist);
+            } else if (result.contains("email")) {
+                map.put("message", emailExist);
+            }
+            return  ResponseEntity.status(HttpStatus.CONFLICT).body(map);
         }
     }
 

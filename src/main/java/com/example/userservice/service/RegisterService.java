@@ -19,11 +19,13 @@ public class RegisterService {
     }
 
     public String registerNewUser(String username, String email, String passwordHash,
-                                   String firstName, String lastName) {
+                                  String firstName, String lastName) {
         if (userCredentialRepo.existsById(username)) {
+            if (userInfoRepo.existsByEmail(email)) {
+                return "username;email";
+            }
             return "username";
-        }
-        if (userInfoRepo.existsByEmail(email)) {
+        } else if (userInfoRepo.existsByEmail(email)) {
             return "email";
         }
         userCredentialRepo.registerUser(username, email, passwordHash, firstName, lastName);
